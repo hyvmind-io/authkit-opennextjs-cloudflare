@@ -27,7 +27,6 @@
     "clean": "rm -rf dist",
     "prebuild": "pnpm run clean",
     "build": "tsc --project tsconfig.json",
-    "prepublishOnly": "pnpm run lint",
     "lint": "eslint \"src/**/*.ts*\"",
     "test": "vitest run",
     "test:watch": "vitest",

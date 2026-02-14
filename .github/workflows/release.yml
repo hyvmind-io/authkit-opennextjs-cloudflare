@@ -37,8 +37,8 @@ jobs:
 
       - name: Publish release
         if: ${{ !github.event.release.prerelease }}
-        run: pnpm publish --tag latest --access=public --no-git-checks
+        run: npm publish --tag latest --access=public
 
       - name: Publish pre-release
         if: ${{ github.event.release.prerelease }}
-        run: pnpm publish --tag next --access=public --no-git-checks
+        run: npm publish --tag next --access=public
