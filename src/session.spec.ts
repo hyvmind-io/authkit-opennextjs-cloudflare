@@ -160,9 +160,7 @@ describe('session.ts', () => {
 
   describe('updateSessionMiddleware', () => {
     it('should throw an error if the redirect URI is not set', async () => {
-      const originalWorkosRedirectUri = envVariables.WORKOS_REDIRECT_URI;
-
-      Object.defineProperty(envVariables, 'WORKOS_REDIRECT_URI', { value: '', configurable: true });
+      const spy = vi.spyOn(envVariables, 'WORKOS_REDIRECT_URI').mockReturnValue('');
 
       await expect(async () => {
         await updateSessionMiddleware(
@@ -177,16 +175,11 @@ describe('session.ts', () => {
         );
       }).rejects.toThrow('You must provide a redirect URI in the AuthKit middleware or in the environment variables.');
 
-      Object.defineProperty(envVariables, 'WORKOS_REDIRECT_URI', {
-        value: originalWorkosRedirectUri,
-        configurable: true,
-      });
+      spy.mockRestore();
     });
 
     it('should throw an error if the cookie password is not set', async () => {
-      const originalWorkosCookiePassword = envVariables.WORKOS_COOKIE_PASSWORD;
-
-      Object.defineProperty(envVariables, 'WORKOS_COOKIE_PASSWORD', { value: '', configurable: true });
+      const spy = vi.spyOn(envVariables, 'WORKOS_COOKIE_PASSWORD').mockReturnValue('');
 
       await expect(async () => {
         await updateSessionMiddleware(
@@ -203,16 +196,11 @@ describe('session.ts', () => {
         'You must provide a valid cookie password that is at least 32 characters in the environment variables.',
       );
 
-      Object.defineProperty(envVariables, 'WORKOS_COOKIE_PASSWORD', {
-        value: originalWorkosCookiePassword,
-        configurable: true,
-      });
+      spy.mockRestore();
     });
 
     it('should throw an error if the cookie password is less than 32 characters', async () => {
-      const originalWorkosCookiePassword = envVariables.WORKOS_COOKIE_PASSWORD;
-
-      Object.defineProperty(envVariables, 'WORKOS_COOKIE_PASSWORD', { value: 'short', configurable: true });
+      const spy = vi.spyOn(envVariables, 'WORKOS_COOKIE_PASSWORD').mockReturnValue('short');
 
       await expect(async () => {
         await updateSessionMiddleware(
@@ -229,10 +217,7 @@ describe('session.ts', () => {
         'You must provide a valid cookie password that is at least 32 characters in the environment variables.',
       );
 
-      Object.defineProperty(envVariables, 'WORKOS_COOKIE_PASSWORD', {
-        value: originalWorkosCookiePassword,
-        configurable: true,
-      });
+      spy.mockRestore();
     });
 
     it('should return early if there is no session', async () => {

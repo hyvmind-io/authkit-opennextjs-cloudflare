@@ -21,7 +21,7 @@ describe('workos', () => {
       https: true,
       port: undefined,
       appInfo: {
-        name: 'authkit/nextjs',
+        name: 'authkit-opennextjs-cloudflare',
         version: VERSION,
       },
     });

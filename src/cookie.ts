@@ -35,10 +35,10 @@ export function getCookieOptions(
   asString: boolean = false,
   expired: boolean = false,
 ): CookieOptions | string {
-  const sameSite = WORKOS_COOKIE_SAMESITE || 'lax';
+  const sameSite = WORKOS_COOKIE_SAMESITE() || 'lax';
   assertValidSamSite(sameSite);
 
-  const urlString = redirectUri || WORKOS_REDIRECT_URI;
+  const urlString = redirectUri || WORKOS_REDIRECT_URI();
   // Default to secure=true when no URL available (production default)
   // Developers should set WORKOS_REDIRECT_URI for proper local dev
   let secure: boolean;
@@ -59,8 +59,8 @@ export function getCookieOptions(
   let maxAge: number;
   if (expired) {
     maxAge = 0;
-  } else if (WORKOS_COOKIE_MAX_AGE) {
-    const parsed = parseInt(WORKOS_COOKIE_MAX_AGE, 10);
+  } else if (WORKOS_COOKIE_MAX_AGE()) {
+    const parsed = parseInt(WORKOS_COOKIE_MAX_AGE()!, 10);
     maxAge = Number.isFinite(parsed) ? parsed : 60 * 60 * 24 * 400;
   } else {
     maxAge = 60 * 60 * 24 * 400;
@@ -69,8 +69,8 @@ export function getCookieOptions(
   if (asString) {
     const capitalizedSameSite = sameSite.charAt(0).toUpperCase() + sameSite.slice(1).toLowerCase();
     const parts = ['Path=/', 'HttpOnly', `SameSite=${capitalizedSameSite}`, `Max-Age=${maxAge}`];
-    if (WORKOS_COOKIE_DOMAIN) {
-      parts.push(`Domain=${WORKOS_COOKIE_DOMAIN}`);
+    if (WORKOS_COOKIE_DOMAIN()) {
+      parts.push(`Domain=${WORKOS_COOKIE_DOMAIN()}`);
     }
     if (secure) {
       parts.push('Secure');
@@ -88,7 +88,7 @@ export function getCookieOptions(
     // It's fine to have a long cookie expiry date as the access/refresh tokens
     // act as the actual time-limited aspects of the session.
     maxAge,
-    domain: WORKOS_COOKIE_DOMAIN || '',
+    domain: WORKOS_COOKIE_DOMAIN() || '',
   };
 }
 
@@ -109,7 +109,7 @@ export function getJwtCookie(body: string | null, requestUrlOrRedirectUri?: stri
       // If URL parsing fails, default to secure in production
       secure = isProduction;
       // If it's not a valid URL, fall back to WORKOS_REDIRECT_URI
-      const fallbackUrl = WORKOS_REDIRECT_URI;
+      const fallbackUrl = WORKOS_REDIRECT_URI();
       if (fallbackUrl) {
         try {
           const url = new URL(fallbackUrl);
@@ -119,10 +119,10 @@ export function getJwtCookie(body: string | null, requestUrlOrRedirectUri?: stri
         }
       }
     }
-  } else if (WORKOS_REDIRECT_URI) {
+  } else if (WORKOS_REDIRECT_URI()) {
     // No URL provided, check WORKOS_REDIRECT_URI
     try {
-      const url = new URL(WORKOS_REDIRECT_URI);
+      const url = new URL(WORKOS_REDIRECT_URI());
       secure = url.protocol === 'https:';
     } catch {
       secure = false;

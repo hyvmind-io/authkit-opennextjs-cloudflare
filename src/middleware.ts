@@ -6,12 +6,19 @@ import { WORKOS_REDIRECT_URI } from './env-variables.js';
 export function authkitMiddleware({
   debug = false,
   middlewareAuth = { enabled: false, unauthenticatedPaths: [] },
-  redirectUri = WORKOS_REDIRECT_URI,
+  redirectUri = '',
   signUpPaths = [],
   eagerAuth = false,
 }: AuthkitMiddlewareOptions = {}): NextMiddleware {
   return function (request) {
-    return updateSessionMiddleware(request, debug, middlewareAuth, redirectUri, signUpPaths, eagerAuth);
+    return updateSessionMiddleware(
+      request,
+      debug,
+      middlewareAuth,
+      redirectUri || WORKOS_REDIRECT_URI(),
+      signUpPaths,
+      eagerAuth,
+    );
   };
 }
 

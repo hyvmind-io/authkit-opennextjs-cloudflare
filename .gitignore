@@ -10,3 +10,6 @@ example/.next
 example/.env.local
 example/next-env.d.ts
 example/tsconfig.tsbuildinfo
+
+# PRDs
+_prds

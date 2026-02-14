@@ -20,8 +20,8 @@ async function getAuthorizationUrl(options: GetAuthURLOptions = {}) {
 
   return getWorkOS().userManagement.getAuthorizationUrl({
     provider: 'authkit',
-    clientId: WORKOS_CLIENT_ID,
-    redirectUri: redirectUri ?? WORKOS_REDIRECT_URI,
+    clientId: WORKOS_CLIENT_ID(),
+    redirectUri: redirectUri ?? WORKOS_REDIRECT_URI(),
     state: finalState,
     screenHint,
     organizationId,

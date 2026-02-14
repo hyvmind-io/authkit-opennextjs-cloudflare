@@ -30,7 +30,7 @@ const middlewareHeaderName = 'x-workos-middleware';
 const signUpPathsHeaderName = 'x-sign-up-paths';
 const jwtCookieName = 'workos-access-token';
 
-const JWKS = lazy(() => createRemoteJWKSet(new URL(getWorkOS().userManagement.getJwksUrl(WORKOS_CLIENT_ID))));
+const JWKS = lazy(() => createRemoteJWKSet(new URL(getWorkOS().userManagement.getJwksUrl(WORKOS_CLIENT_ID()))));
 
 /**
  * Applies cache security headers with Vary header deduplication.
@@ -45,7 +45,7 @@ function applyCacheSecurityHeaders(
   request: NextRequest,
   sessionData?: { accessToken?: string } | Session,
 ): void {
-  const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+  const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
 
   // Only apply cache headers for authenticated requests
   if (!sessionData?.accessToken && !request.cookies.has(cookieName) && !request.headers.has('authorization')) {
@@ -92,7 +92,7 @@ function isInitialDocumentRequest(request: NextRequest): boolean {
 
 async function encryptSession(session: Session) {
   return sealData(session, {
-    password: WORKOS_COOKIE_PASSWORD,
+    password: WORKOS_COOKIE_PASSWORD(),
     ttl: 0,
   });
 }
@@ -105,11 +105,11 @@ async function updateSessionMiddleware(
   signUpPaths: string[],
   eagerAuth = false,
 ) {
-  if (!redirectUri && !WORKOS_REDIRECT_URI) {
+  if (!redirectUri && !WORKOS_REDIRECT_URI()) {
     throw new Error('You must provide a redirect URI in the AuthKit middleware or in the environment variables.');
   }
 
-  if (!WORKOS_COOKIE_PASSWORD || WORKOS_COOKIE_PASSWORD.length < 32) {
+  if (!WORKOS_COOKIE_PASSWORD() || WORKOS_COOKIE_PASSWORD().length < 32) {
     throw new Error(
       'You must provide a valid cookie password that is at least 32 characters in the environment variables.',
     );
@@ -120,7 +120,7 @@ async function updateSessionMiddleware(
   if (redirectUri) {
     url = new URL(redirectUri);
   } else {
-    url = new URL(WORKOS_REDIRECT_URI);
+    url = new URL(WORKOS_REDIRECT_URI());
   }
 
   if (
@@ -207,7 +207,7 @@ async function updateSession(
       headers: newRequestHeaders,
       authorizationUrl: await getAuthorizationUrl({
         returnPathname: getReturnPathname(request.url),
-        redirectUri: options.redirectUri || WORKOS_REDIRECT_URI,
+        redirectUri: options.redirectUri || WORKOS_REDIRECT_URI(),
         screenHint: options.screenHint,
       }),
     };
@@ -215,7 +215,7 @@ async function updateSession(
 
   const hasValidSession = await verifyAccessToken(session.accessToken);
 
-  const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+  const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
 
   applyCacheSecurityHeaders(newRequestHeaders, request, session);
 
@@ -271,7 +271,7 @@ async function updateSession(
 
     const { accessToken, refreshToken, user, impersonator } =
       await getWorkOS().userManagement.authenticateWithRefreshToken({
-        clientId: WORKOS_CLIENT_ID,
+        clientId: WORKOS_CLIENT_ID(),
         refreshToken: session.refreshToken,
         organizationId: organizationIdFromAccessToken,
       });
@@ -345,7 +345,7 @@ async function updateSession(
       headers: newRequestHeaders,
       authorizationUrl: await getAuthorizationUrl({
         returnPathname: getReturnPathname(request.url),
-        redirectUri: options.redirectUri || WORKOS_REDIRECT_URI,
+        redirectUri: options.redirectUri || WORKOS_REDIRECT_URI(),
       }),
     };
   }
@@ -377,7 +377,7 @@ async function refreshSession({
 
   try {
     refreshResult = await getWorkOS().userManagement.authenticateWithRefreshToken({
-      clientId: WORKOS_CLIENT_ID,
+      clientId: WORKOS_CLIENT_ID(),
       refreshToken: session.refreshToken,
       organizationId: nextOrganizationId ?? organizationIdFromAccessToken,
     });
@@ -392,7 +392,7 @@ async function refreshSession({
   const headersList = await headers();
   const url = headersList.get('x-url');
 
-  await saveSession(refreshResult, url || WORKOS_REDIRECT_URI);
+  await saveSession(refreshResult, url || WORKOS_REDIRECT_URI());
 
   const { accessToken, user, impersonator } = refreshResult;
 
@@ -513,7 +513,7 @@ async function verifyAccessToken(accessToken: string) {
 }
 
 export async function getSessionFromCookie(request?: NextRequest) {
-  const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+  const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
   let cookie;
 
   if (request) {
@@ -525,7 +525,7 @@ export async function getSessionFromCookie(request?: NextRequest) {
 
   if (cookie) {
     return unsealData<Session>(cookie.value, {
-      password: WORKOS_COOKIE_PASSWORD,
+      password: WORKOS_COOKIE_PASSWORD(),
     });
   }
 }
@@ -544,7 +544,7 @@ async function getSessionFromHeader(): Promise<Session | undefined> {
   const authHeader = headersList.get(sessionHeaderName);
   if (!authHeader) return;
 
-  return unsealData<Session>(authHeader, { password: WORKOS_COOKIE_PASSWORD });
+  return unsealData<Session>(authHeader, { password: WORKOS_COOKIE_PASSWORD() });
 }
 
 function getReturnPathname(url: string): string {
@@ -596,7 +596,7 @@ export async function saveSession(
   sessionOrResponse: Session | AuthenticationResponse,
   request: NextRequest | string,
 ): Promise<void> {
-  const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+  const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
   const encryptedSession = await encryptSession(sessionOrResponse);
   const nextCookies = await cookies();
   const url = typeof request === 'string' ? request : request.url;

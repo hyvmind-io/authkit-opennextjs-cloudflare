@@ -1,7 +1,7 @@
 {
-  "name": "@workos-inc/authkit-nextjs",
+  "name": "@hyvmind/authkit-opennextjs-cloudflare",
   "version": "2.14.0",
-  "description": "Authentication and session helpers for using WorkOS & AuthKit with Next.js",
+  "description": "Cloudflare Workers-native authentication and session helpers for using WorkOS & AuthKit with Next.js via @opennextjs/cloudflare",
   "packageManager": "pnpm@10.28.0",
   "sideEffects": false,
   "type": "module",
@@ -66,12 +66,27 @@
     "vitest": "^3.0.0"
   },
   "license": "MIT",
-  "homepage": "https://github.com/workos/authkit-nextjs#readme",
+  "keywords": [
+    "workos",
+    "authkit",
+    "nextjs",
+    "next.js",
+    "cloudflare",
+    "workers",
+    "pages",
+    "opennextjs",
+    "open-next",
+    "authentication",
+    "session",
+    "edge",
+    "serverless"
+  ],
+  "homepage": "https://github.com/hyvmind-io/authkit-opennextjs-cloudflare#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/workos/authkit-nextjs.git"
+    "url": "git+https://github.com/hyvmind-io/authkit-opennextjs-cloudflare.git"
   },
   "bugs": {
-    "url": "https://github.com/workos/authkit-nextjs/issues"
+    "url": "https://github.com/hyvmind-io/authkit-opennextjs-cloudflare/issues"
   }
 }

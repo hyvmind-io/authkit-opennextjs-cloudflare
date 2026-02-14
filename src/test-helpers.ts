@@ -62,11 +62,11 @@ export async function generateSession(overrides: Partial<User> = {}) {
       user: mockUser,
     },
     {
-      password: WORKOS_COOKIE_PASSWORD as string,
+      password: WORKOS_COOKIE_PASSWORD(),
     },
   );
 
-  const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+  const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
   const nextCookies = await cookies();
   nextCookies.set(cookieName, encryptedSession);
 }

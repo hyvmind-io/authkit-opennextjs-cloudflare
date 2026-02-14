@@ -64,7 +64,7 @@ export function handleAuth(options: HandleAuthOptions = {}) {
         // Use the code returned to us by AuthKit and authenticate the user with WorkOS
         const { accessToken, refreshToken, user, impersonator, oauthTokens, authenticationMethod, organizationId } =
           await getWorkOS().userManagement.authenticateWithCode({
-            clientId: WORKOS_CLIENT_ID,
+            clientId: WORKOS_CLIENT_ID(),
             code,
           });
 

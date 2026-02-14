@@ -75,7 +75,7 @@ export async function signOut({ returnTo }: { returnTo?: string } = {}) {
     }
   } finally {
     const nextCookies = await cookies();
-    const cookieName = WORKOS_COOKIE_NAME || 'wos-session';
+    const cookieName = WORKOS_COOKIE_NAME() || 'wos-session';
     const { domain, path, sameSite, secure } = getCookieOptions();
     nextCookies.delete({ name: cookieName, domain, path, sameSite, secure });
 

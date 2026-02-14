@@ -32,8 +32,8 @@ describe('cookie.ts', () => {
       const envVars = await import('./env-variables');
 
       // Set the mock values
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_MAX_AGE', { value: '1000' });
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_DOMAIN', { value: 'foobar.com' });
+      const maxAgeSpy = vi.spyOn(envVars, 'WORKOS_COOKIE_MAX_AGE').mockReturnValue('1000');
+      const domainSpy = vi.spyOn(envVars, 'WORKOS_COOKIE_DOMAIN').mockReturnValue('foobar.com');
 
       const { getCookieOptions } = await import('./cookie');
       const options = getCookieOptions('http://example.com');
@@ -46,7 +46,7 @@ describe('cookie.ts', () => {
         }),
       );
 
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_DOMAIN', { value: '' });
+      domainSpy.mockReturnValue('');
 
       const options2 = getCookieOptions('http://example.com');
       expect(options2).toEqual(
@@ -60,6 +60,9 @@ describe('cookie.ts', () => {
       const options3 = getCookieOptions('https://example.com', true);
       // Domain should not be included when WORKOS_COOKIE_DOMAIN is empty
       expect(options3).toEqual(expect.not.stringContaining('Domain='));
+
+      maxAgeSpy.mockRestore();
+      domainSpy.mockRestore();
     });
 
     it('should return the cookie options with expired set to true', async () => {
@@ -84,38 +87,48 @@ describe('cookie.ts', () => {
 
     it('allows the sameSite config to be set by the WORKOS_COOKIE_SAMESITE env variable', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_SAMESITE', { value: 'none' });
+      const spy = vi.spyOn(envVars, 'WORKOS_COOKIE_SAMESITE').mockReturnValue('none');
 
       const { getCookieOptions } = await import('./cookie');
       const options = getCookieOptions('http://example.com');
       expect(options).toEqual(expect.objectContaining({ sameSite: 'none' }));
+
+      spy.mockRestore();
     });
 
     it('throws an error if the sameSite value is invalid', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_SAMESITE', { value: 'invalid' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const spy = vi.spyOn(envVars, 'WORKOS_COOKIE_SAMESITE').mockReturnValue('invalid' as any);
 
       const { getCookieOptions } = await import('./cookie');
       expect(() => getCookieOptions('http://example.com')).toThrow('Invalid SameSite value: invalid');
+
+      spy.mockRestore();
     });
 
     it('defaults to secure=true when no URL is available', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: undefined });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('');
 
       const { getCookieOptions } = await import('./cookie');
       const options = getCookieOptions();
       expect(options).toEqual(expect.objectContaining({ secure: true }));
+
+      spy.mockRestore();
     });
 
     it('defaults to secure=true when no URL is available with lax sameSite', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: undefined });
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_SAMESITE', { value: 'lax' });
+      const uriSpy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('');
+      const sameSiteSpy = vi.spyOn(envVars, 'WORKOS_COOKIE_SAMESITE').mockReturnValue('lax');
 
       const { getCookieOptions } = await import('./cookie');
       const options = getCookieOptions();
       expect(options).toEqual(expect.objectContaining({ secure: true, sameSite: 'lax' }));
+
+      uriSpy.mockRestore();
+      sameSiteSpy.mockRestore();
     });
 
     it('handles invalid URLs gracefully by defaulting to secure=true', async () => {
@@ -126,22 +139,26 @@ describe('cookie.ts', () => {
 
     it('handles invalid WORKOS_COOKIE_MAX_AGE gracefully', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_MAX_AGE', { value: 'invalid-number' });
+      const spy = vi.spyOn(envVars, 'WORKOS_COOKIE_MAX_AGE').mockReturnValue('invalid-number');
 
       const { getCookieOptions } = await import('./cookie');
       const options = getCookieOptions();
       expect(options).toEqual(expect.objectContaining({ maxAge: 34560000 })); // Falls back to default
+
+      spy.mockRestore();
     });
 
     it('properly formats cookie string without Domain when not set', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_COOKIE_DOMAIN', { value: '' });
+      const spy = vi.spyOn(envVars, 'WORKOS_COOKIE_DOMAIN').mockReturnValue('');
 
       const { getCookieOptions } = await import('./cookie');
       const cookieString = getCookieOptions('https://example.com', true);
       expect(cookieString).not.toContain('Domain=');
       expect(cookieString).toContain('Secure');
       expect(cookieString).toContain('SameSite=Lax'); // Capitalized
+
+      spy.mockRestore();
     });
   });
 
@@ -192,42 +209,48 @@ describe('cookie.ts', () => {
 
       // Mock no WORKOS_REDIRECT_URI
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: '' });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('');
 
       const { getJwtCookie } = await import('./cookie');
 
       const cookie = getJwtCookie('token', 'invalid-url');
 
       expect(cookie).toContain('Secure'); // Should default to secure in production when no fallback
+
+      spy.mockRestore();
     });
 
     it('should fall back to WORKOS_REDIRECT_URI when invalid URL provided', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: 'https://app.workos.com/callback' });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('https://app.workos.com/callback');
 
       const { getJwtCookie } = await import('./cookie');
 
       const cookie = getJwtCookie('token', 'invalid-url');
 
       expect(cookie).toContain('Secure'); // Should use HTTPS from fallback URL
+
+      spy.mockRestore();
     });
 
     it('should set secure to false when WORKOS_REDIRECT_URI parsing fails', async () => {
       process.env.NODE_ENV = 'development'; // Not production
 
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: 'also-invalid-url' });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('also-invalid-url');
 
       const { getJwtCookie } = await import('./cookie');
 
       const cookie = getJwtCookie('token', null); // This triggers the WORKOS_REDIRECT_URI path
 
       expect(cookie).not.toContain('Secure'); // Should be false when URL parsing fails (line 128)
+
+      spy.mockRestore();
     });
 
     it('should handle both main URL and fallback URL parsing failures', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: 'invalid-fallback-url' });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('invalid-fallback-url');
 
       const { getJwtCookie } = await import('./cookie');
 
@@ -235,17 +258,21 @@ describe('cookie.ts', () => {
       const cookie = getJwtCookie('token', 'invalid-main-url');
 
       expect(cookie).not.toContain('Secure'); // Line 118: secure = false when fallback parsing fails
+
+      spy.mockRestore();
     });
 
     it('should use WORKOS_REDIRECT_URI when no URL provided', async () => {
       const envVars = await import('./env-variables');
-      Object.defineProperty(envVars, 'WORKOS_REDIRECT_URI', { value: 'https://secure.example.com' });
+      const spy = vi.spyOn(envVars, 'WORKOS_REDIRECT_URI').mockReturnValue('https://secure.example.com');
 
       const { getJwtCookie } = await import('./cookie');
 
       const cookie = getJwtCookie('token', null);
 
       expect(cookie).toContain('Secure'); // Should use HTTPS from WORKOS_REDIRECT_URI
+
+      spy.mockRestore();
     });
 
     it('should create expired JWT cookie for deletion', async () => {
